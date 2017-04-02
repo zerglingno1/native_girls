@@ -1,0 +1,34 @@
+{
+  "name": "native_girl",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "test": "jest"
+  },
+  "dependencies": {
+    "axios": "0.15.3",
+    "cheerio-without-node-native": "^0.20.2",
+    "native-base": "^2.1.0",
+    "react": "15.4.2",
+    "react-native": "0.42.0",
+    "react-native-action-button": "^2.6.4",
+    "react-native-easy-grid": "^0.1.8",
+    "react-native-elements": "^0.10.3",
+    "react-native-fit-image": "^1.4.7",
+    "react-native-image-zoom-viewer": "^1.2.47",
+    "react-native-vector-icons": "4.0.0",
+    "react-native-windows": "^0.42.0",
+    "react-navigation": "^1.0.0-beta.7"
+  },
+  "devDependencies": {
+    "babel-jest": "19.0.0",
+    "babel-preset-react-native": "1.9.1",
+    "jest": "19.0.2",
+    "react-test-renderer": "15.4.2",
+    "rnpm-plugin-windows": "^0.2.4"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
