@@ -6,11 +6,12 @@ import {
   View
 } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
+//import FitImage from 'react-native-fit-image';
 
 export default class ViewGirl extends React.Component {
   static navigationOptions = {
      title: 'Main', 
-     header: { visible: true } 
+     header: { visible: false } 
     };
   constructor(props) {
     super(props)
@@ -22,20 +23,21 @@ export default class ViewGirl extends React.Component {
   }
 
   render() {
-    let { images } = this.props;
-
-    console.warn(images.length);
+    let { image } = this.props;
     return (
-    <View style={{flex: 1}}>
-      {images && (<ImageViewer style={styles.container} imageUrls={images}/>)}
+    <View style={styles.container}>
+      {(images && images.length > 0) && (<ImageViewer style={styles.container} imageUrls={images}/>)}
     </View>);
   }
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'red',
+    backgroundColor: 'black',
     flex: 1,
-    height: 500
   },
+  image: {
+    width: undefined,
+    height: undefined
+  }
 });

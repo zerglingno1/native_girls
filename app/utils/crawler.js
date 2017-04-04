@@ -8,10 +8,10 @@ export default {
       normalizeWhitespace: true
     });
 
-    $('div#posts article.post.photo').each( function(index, element) {
+    $('article.post-photo').each( function(index, element) {
       let girl = {};
       girl.url = $(element).find('img').attr('src');
-      girl.title = $(element).find('div.post-footer-photo a').first().text();
+      girl.title = $(element).find('div.date > a').first().text();
       girls.push(girl);
     });
 
