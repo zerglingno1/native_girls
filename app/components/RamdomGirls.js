@@ -8,36 +8,28 @@ import {
   ActivityIndicator, 
   TouchableOpacity, 
   Image,
-  Animated
 } from 'react-native';
 import { Icon, Card } from 'react-native-elements';
 import axios from 'axios';
 import crawler from '../utils/crawler';
 import FitImage from 'react-native-fit-image';
 import ui from '../utils/ui';
-import ViewPager from 'react-native-viewpager';
+import SwipeCards from 'react-native-swipe-cards';
 
 export default class RamdomGirls extends React.Component {
   constructor(props) {
     super(props)
-    const dataSource = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
-    const pagerDataSource = new ViewPager.DataSource({
-      pageHasChanged: (p1, p2) => p1 !== p2,
-    });
     this.state = {
-      dataSource,
-      pagerDataSource,
       page: Math.floor(Math.random() * 200) + 1 ,
       host: 'http://xkcn.info/',
       host2: 'http://sose.xyz/',
       girls: [],
       source: null,
       loading: false,
-      timeOut: null,
-      loadMore: false,
-      loadMoreBack: false,
+      background: null,
       backgrounds: null,
-      width: ui.size.width
+      width: ui.size.width,
+      outOfCards: false
     }
   }
 
@@ -60,27 +52,24 @@ export default class RamdomGirls extends React.Component {
       .then(async (response) => {
         let { girls, host2 } = this.state;
         let newGirls = crawler.crawlGirls(response.data);
-        /*let source = dataSource.cloneWithRows(newGirls);
-        this.setState({
-          source,
-        });*/
         let url2 = (page == 1) ? host2 : `${host2}page/${page}`;
         axios({method: 'GET', url: url2, params: { }})
         .then(async (response) => {
+          let { backgrounds } = this.state;
           let newGirls2 = crawler.crawlGirls2(response.data);
-          let backgrounds = newGirls.map((item) => item.url);
-
           newGirls2 = newGirls.concat(newGirls2);
-          let source = dataSource.cloneWithRows(newGirls2);
-          let index = parseInt(newGirls2.length / 2);
+          if (backgrounds) {
+            backgrounds = backgrounds.concat(newGirls2);
+          } else {
+            backgrounds = newGirls2;
+          }
+
           this.setState({
-            girls: newGirls2,
-            source,
             loading: false,
             page,
-            backgrounds
+            backgrounds,
+            background: backgrounds[0].url
           });
-          girls = girls.concat(newGirls);
 
         }).catch((error) => {
           console.warn(error);
@@ -123,129 +112,52 @@ export default class RamdomGirls extends React.Component {
       );
   }
 
-  renderLoadingMore() {
-    return (<View style={styles.popupCenter}>
-      <ActivityIndicator
-        style={[styles.centering, {height: 80}]}
-        size="large"
-      />
-      <Text style={styles.textLoadMore}>Load more</Text>
-    </View>);
+  handleYup (card) {
   }
+  handleNope (card) {
+  }
+  cardRemoved (index) {
+    const { backgrounds } = this.state;
 
-  _onScroll(e) {
-    const { timeOut } = this.state;
-
-    let windowHeight = ui.size.height,
-            height = e.nativeEvent.contentSize.height,
-            offset = e.nativeEvent.contentOffset.y;
-    if( windowHeight + offset >= height ) {
-      //console.warn( windowHeight + offset + '  ====  ' +  height);
-      if (!timeOut) {
-        let time = setTimeout(() => {
-          const { host, page, timeOut } = this.state;
-    
-          let next = Number(page) + 1;
-          let url = (next <= 1) ? host : `${host}page/${next}`;
-
-          this.refs.listView2.scrollTo({x: 0,y: 0,animated: false});
-          this.refs.listPage2.scrollTo({x: 0,y: 0,animated: false});
-          this.loadGirls(url, next);
-          clearTimeout(timeOut);
-          this.setState({
-            timeOut: null,
-            loadMore: false,
-            loadMoreBack: false
-          });
-        }, 1000);
-        this.setState({
-          timeOut: time,
-          loadMore: true,
-          loadMoreBack: false
-        });
-      }
-    } else if (offset <= 0) {
-      
-      if (!timeOut) {
-        let time = setTimeout(() => {
-          const { host, page, timeOut } = this.state;
-    
-          let next = Number(page) - 1;
-          let url = (next <= 1) ? host : `${host}page/${next}`;
-
-          this.refs.listView2.scrollTo({x: 0,y: 0,animated: false});
-          this.refs.listPage2.scrollTo({x: 0,y: 0,animated: false});
-          this.loadGirls(url, next);
-          clearTimeout(timeOut);
-          this.setState({
-            timeOut: null,
-            loadMore: false,
-            loadMoreBack: false
-          });
-        }, 1000);
-        this.setState({
-          timeOut: time,
-          loadMore: false,
-          loadMoreBack: true
-        });
-      }
+    if (index == backgrounds.length - 1) {
+      let next = Math.floor(Math.random() * 200) + 1;
+      let url = (next == 1) ? host : `${host}page/${next}`;
+      this.loadGirls(url, next);
     } else {
-      clearTimeout(timeOut);
       this.setState({
-        timeOut: null,
-        loadMore: false,
-        loadMoreBack: false
-      });
+        backgrounds: backgrounds,
+        background: backgrounds[index].url
+    });
     }
-  }
-
-  renderPage (data, pageID) {
-    return (
-      <FitImage
-        source={{uri: data}}
-        style={styles.page} />
-    );
   }
 
   renderBackground() {
-    const { source, loadMore, backgrounds, loadMoreBack, pagerDataSource } = this.state;
+    const { source, backgrounds, pagerDataSource, background } = this.state;
 
-    let sourceView = null;
-    if (backgrounds) {
-      sourceView = pagerDataSource.cloneWithPages(backgrounds);
-    }
+    return (<View style={{flex: 1, width: undefined, height: undefined, backgroundColor: 'black'}}>
+      {background && (<Image source={{uri: background}} resizeMode='cover' style={{opacity: 0.4 ,flex: 1, width: ui.size.width, height: ui.size.height, position: 'absolute', left: 0, top: 0}} />)}
+      <View style={[styles.centering, {width: ui.size.width, height: 500}]}>
+        { backgrounds && backgrounds.length > 0 && (
+          <SwipeCards
+            cards={backgrounds}
+            loop={true}
 
-    return (<View>
-      {sourceView && (
-        <ViewPager
-          dataSource={sourceView}
-          renderPage={this.renderPage}
-          isLoop={true}
-          locked={false}
-          autoPlay={true}
-          />
-      )}
-        <ScrollView ref='listPage2' onScroll={(e) => this._onScroll(e)}>
-         {loadMoreBack && (<View style={[styles.endList, {height: 80}]}>
-            <ActivityIndicator
-              style={[styles.centering, {height: 80}]}
-              size="large"
-            /></View>)}
-          {source && (
-            <ListView
-              ref='listView2'
-              dataSource={source}
-              renderRow={(row) => this.renderPost(row)}
-              contentContainerStyle={styles.items}
-              style={styles.itemsBox}
-            />)}
-          <View style={[styles.endList, {height: 80}]}>{loadMore && (
-            <ActivityIndicator
-              style={[styles.centering, {height: 80}]}
-              size="large"
-            />)}</View>
-        </ScrollView>
-      </View>)
+            renderCard={(cardData) => cardData && (
+              <View style={styles.card}>
+                <FitImage style={styles.thumbnail} source={{uri: cardData.url}} />
+                <Text style={styles.text}>{cardData.title}</Text>
+              </View>)}
+            renderNoMoreCards={() => (<View style={styles.noMoreCards}>
+              <Text>No more cards</Text>
+            </View>)}
+            showYup={false}
+            showNope={false}
+            handleYup={this.handleYup}
+            handleNope={this.handleNope}
+            cardRemoved={(index) => this.cardRemoved(index) }
+        />)}
+      </View>
+    </View>)
   };
 
   render() {
@@ -269,49 +181,49 @@ var styles = StyleSheet.create({
       flex: 1,
     },
     itemsBox: {
-        marginLeft: 5,
-        marginRight: 5,
-        height: undefined,
+        marginLeft: 0,
+        marginRight: 0,
+        height: 300
     },
     items: {
-        flexDirection: 'row',
-        flex: 1,
-        flexWrap: 'wrap',
-        justifyContent: 'flex-start'
+        flexDirection: 'column',
+        flexWrap: 'wrap'
     },
     item: {
         backgroundColor: '#F5FCFF',
         borderWidth: 0,
         borderColor: '#555',
-        padding: 0,
-        margin: 0,
         padding: 6,
         margin: 3
     },
-    popupCenter: {
-      position: 'absolute',
-      width: ui.size.width,
-      height: 100,
-      top: ui.size.width / 2 - 50,
-      left: 0,
-      //backgroundColor: '#CCCCCC',
-      //opacity: 0.4,
-      //backgroundColor: 'red',
+    card: {
+      height: ui.size.height * 2 / 3 ,
       alignItems: 'center',
+      borderRadius: 5,
+      overflow: 'hidden',
+      borderColor: 'grey',
+      backgroundColor: 'white',
+      borderWidth: 1,
+      elevation: 1,
+    },
+    thumbnail: {
+      flex: 1,
+      width: (ui.size.width < 800) ? ui.size.width - 10 : 800,
+      height: (ui.size.width < 800) ? ui.size.height * 2 / 3 : 800 ,
+    },
+    text: {
+      fontSize: 20,
+      paddingTop: 10,
+      paddingBottom: 10
+    },
+    noMoreCards: {
+      flex: 1,
       justifyContent: 'center',
+      alignItems: 'center',
     },
     centering: {
-      alignItems: 'center',
       justifyContent: 'center',
-      padding: 8,
-      opacity: 1
-    },
-    textLoadMore: {
-      flex: 1,
-      color: 'black',
-      opacity: 1
-    },
-    endList: {
+      alignItems: 'center',
       flex: 1,
     }
 });

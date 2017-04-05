@@ -19,7 +19,10 @@
     "react-native-image-zoom-viewer": "^1.2.47",
     "react-native-parallax-view": "^2.0.6",
     "react-native-photo-view": "^1.2.0",
+    "react-native-scrollable-tab-view": "^0.6.3",
+    "react-native-swipe-cards": "^0.1.0",
     "react-native-vector-icons": "4.0.0",
+    "react-native-viewpager": "^0.2.13",
     "react-native-windows": "^0.42.0",
     "react-navigation": "^1.0.0-beta.7"
   },

@@ -30,10 +30,14 @@ export default class ViewGirlPage extends React.Component {
         style={styles.container} 
         imageUrls={params.images}
         renderArrowLeft={() => (
-          <View style={{width: 50, height: 50, backgroundColor: 'red', zIndex: 99}}></View>
+          <View style={{width: 50, height: 50, zIndex: 99, marginLeft: 10}}>
+            <Icon name='ios-arrow-back-outline' color='#ffffff' size={50} />
+          </View>
         )}
         renderArrowRight={() => (
-          <View style={{width: 50, height: 50, backgroundColor: 'red', zIndex: 99}}></View>
+          <View style={{width: 50, height: 50,  zIndex: 99, marginRight: 10}}>
+            <Icon name='ios-arrow-forward-outline' color='#ffffff' size={50} />
+          </View>
         )}
       />)}
        <ActionButton buttonColor="rgba(231,76,60,1)">

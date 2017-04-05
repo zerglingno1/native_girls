@@ -31,7 +31,8 @@ export default class ListGirls extends React.Component {
       timeOut: null,
       loadMore: false,
       loadMoreBack: false,
-      background: null
+      background: null,
+      width: ui.size.width
     }
   }
 
@@ -100,10 +101,11 @@ export default class ListGirls extends React.Component {
 
   renderPost(girl) {
     const { _onChooseGirl } = this.props;
-    const { girls } = this.state;
+    const { girls, width } = this.state;
     
+    let numCol = (width < 800) ? 2 : parseInt(width / 400);
     return (
-      <TouchableOpacity style={[styles.item]}  onPress={() => _onChooseGirl(girl, girls)}>
+      <TouchableOpacity style={[styles.item, {width: ui.size.width / numCol - numCol * 4}]}  onPress={() => _onChooseGirl(girl, girls)}>
           <FitImage 
             resizeMode='stretch'
             source={{uri: girl.url}}
@@ -195,7 +197,9 @@ export default class ListGirls extends React.Component {
   }
 
   renderBackground() {
-    const { source, loadMore, background, loadMoreBack } = this.state;
+    const { source, loadMore, background, loadMoreBack, width } = this.state;
+
+    let numCol = (width < 800) ? 2 : parseInt(width / 400);
 
     if (background && background != '') {
       return (
@@ -273,7 +277,7 @@ var styles = StyleSheet.create({
     itemsBox: {
         marginLeft: 5,
         marginRight: 5,
-        height: (ui.size.width < 800) ? 3500 : 8000,
+        height: (ui.size.width < 800) ? 3500 : (ui.size.width < 1200) ? 3500 : 3000,
     },
     items: {
         flexDirection: 'column',
@@ -285,9 +289,6 @@ var styles = StyleSheet.create({
         backgroundColor: '#F5FCFF',
         borderWidth: 0,
         borderColor: '#555',
-        width: ui.size.width / 2 - 10,
-        padding: 0,
-        margin: 0,
         padding: 6,
         margin: 3
     },
