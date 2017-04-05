@@ -18,7 +18,12 @@ import SwipeCards from 'react-native-swipe-cards';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-export default class RamdomGirls extends React.Component {
+export default class RamdomGirlsPage extends React.Component {
+
+  static navigationOptions = {
+     title: 'Main', 
+     header: { visible: false } 
+  };
   constructor(props) {
     super(props)
     this.state = {
@@ -42,7 +47,7 @@ export default class RamdomGirls extends React.Component {
     this.loadGirls(url, page);
   }
 
-  loadGirls(url, page) {
+  loadGirls(url, page, isKeep = true) {
     const { dataSource, loading } = this.state;
 
     if(!loading) {
@@ -60,7 +65,7 @@ export default class RamdomGirls extends React.Component {
           let { backgrounds } = this.state;
           let newGirls2 = crawler.crawlGirls2(response.data);
           newGirls2 = newGirls.concat(newGirls2);
-          if (backgrounds) {
+          if (isKeep && backgrounds) {
             backgrounds = backgrounds.concat(newGirls2);
           } else {
             backgrounds = newGirls2;
@@ -98,8 +103,10 @@ export default class RamdomGirls extends React.Component {
 
   handleYup (card) {
   }
+
   handleNope (card) {
   }
+
   cardRemoved (index) {
     const { backgrounds, host } = this.state;
 
@@ -113,6 +120,13 @@ export default class RamdomGirls extends React.Component {
         background: backgrounds[index].url
     });
     }
+  }
+
+  loadMore() {
+    const { host } = this.state;
+    let next = Math.floor(Math.random() * 200) + 1;
+    let url = (next == 1) ? host : `${host}page/${next}`;
+    this.loadGirls(url, next, false);
   }
 
   renderBackground() {
@@ -142,6 +156,14 @@ export default class RamdomGirls extends React.Component {
             cardRemoved={(index) => this.cardRemoved(index) }
         />)}
       </View>
+      <ActionButton buttonColor="rgba(231,76,60,1)">
+          <ActionButton.Item buttonColor='#1abc9c' title="More" onPress={() => { this.loadMore() }}>
+            <Icon name="md-refresh" style={styles.actionButtonIcon} />
+          </ActionButton.Item>
+          <ActionButton.Item buttonColor='#1abc9c' title="Back" onPress={() => { goBack(null) }}>
+            <Icon name="md-arrow-round-back" style={styles.actionButtonIcon} />
+          </ActionButton.Item>
+        </ActionButton>
     </View>)
   };
 

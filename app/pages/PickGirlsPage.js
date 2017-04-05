@@ -9,20 +9,28 @@ import {
   TouchableOpacity, 
   Image
 } from 'react-native';
-import { Icon, Card } from 'react-native-elements';
+import { Card } from 'react-native-elements';
 import axios from 'axios';
 import crawler from '../utils/crawler';
 import FitImage from 'react-native-fit-image';
 import ui from '../utils/ui';
 import ParallaxView from 'react-native-parallax-view';
+import ActionButton from 'react-native-action-button';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-export default class ListGirls extends React.Component {
+export default class PickGirlsPage extends React.Component {
+
+  static navigationOptions = {
+    title: 'Main', 
+    header: { visible: false } 
+  };
+
   constructor(props) {
     super(props)
     const dataSource = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
     this.state = {
       dataSource,
-      page: 1,
+      page: Math.floor(Math.random() * 200) + 1,
       host: 'http://xkcn.info/',
       host2: 'http://sose.xyz/',
       girls: [],
@@ -95,13 +103,27 @@ export default class ListGirls extends React.Component {
     />);
   }
 
+  _onChooseGirl(girl, girls) {
+    const { navigation } = this.props;
+    let images = [];
+
+    images.push({url: girl.url});
+    girls.map((item) => {
+      images.push({url: item.url});
+    });
+
+    this.setState({
+      images
+    });
+    navigation.navigate('Girl', { images: images });
+  }
+
   renderPost(girl) {
-    const { _onChooseGirl } = this.props;
     const { girls, width } = this.state;
     
     let numCol = (width < 800) ? 2 : parseInt(width / 400);
     return (
-      <TouchableOpacity style={[styles.item, {width: ui.size.width / numCol - numCol * 4}]}  onPress={() => _onChooseGirl(girl, girls)}>
+      <TouchableOpacity style={[styles.item, {width: ui.size.width / numCol - numCol * 4}]}  onPress={() => this._onChooseGirl(girl, girls)}>
           <FitImage 
             resizeMode='stretch'
             source={{uri: girl.url}}
@@ -125,23 +147,19 @@ export default class ListGirls extends React.Component {
 
   _onScroll(e) {
     const { timeOut } = this.state;
-    const { selectedTab } = this.props;
 
-    if (selectedTab == 'profile') {
-      let windowHeight = ui.size.height,
+    let windowHeight = ui.size.height,
               height = e.nativeEvent.contentSize.height,
               offset = e.nativeEvent.contentOffset.y;
       if( windowHeight + offset >= height ) {
-        //console.warn( windowHeight + offset + '  ====  ' +  height);
         if (!timeOut) {
           let time = setTimeout(() => {
             const { host, page, timeOut } = this.state;
       
-            let next = Number(page) + 1;
+            let next = Math.floor(Math.random() * 200) + 1 ;
             let url = (next <= 1) ? host : `${host}page/${next}`;
 
             this.refs.listView.scrollTo({x: 0,y: 0,animated: false});
-            this.refs.listPage.scrollTo({x: 0,y: 0,animated: false});
             this.loadGirls(url, next);
             clearTimeout(timeOut);
             this.setState({
@@ -162,11 +180,10 @@ export default class ListGirls extends React.Component {
           let time = setTimeout(() => {
             const { host, page, timeOut } = this.state;
       
-            let next = Number(page) - 1;
+            let next = Math.floor(Math.random() * 200) + 1;
             let url = (next <= 1) ? host : `${host}page/${next}`;
 
             this.refs.listView.scrollTo({x: 0,y: 0,animated: false});
-            this.refs.listPage.scrollTo({x: 0,y: 0,animated: false});
             this.loadGirls(url, next);
             clearTimeout(timeOut);
             this.setState({
@@ -189,19 +206,19 @@ export default class ListGirls extends React.Component {
           loadMoreBack: false
         });
       }
-    }
   }
 
   renderBackground() {
     const { source, loadMore, background, loadMoreBack, width } = this.state;
+    let { goBack } = this.props.navigation;
 
     let numCol = (width < 800) ? 2 : parseInt(width / 400);
 
     if (background && background != '') {
       return (
-        <ParallaxView backgroundSource={{uri: background}}
-                  style={styles.backgroundImage} onScroll={(e) => this._onScroll(e)} ref='listPage'>
-        <ScrollView>
+        <View>
+        <Image source={{uri: background}} resizeMode='cover' style={{opacity: 0.4 ,flex: 1, width: ui.size.width, height: ui.size.height, position: 'absolute', left: 0, top: 0}} />
+        <ScrollView onScroll={(e) => this._onScroll(e)}>
           {loadMoreBack && (<View style={[styles.endList, {height: 80}]}>
             <ActivityIndicator
               style={[styles.centering, {height: 80}]}
@@ -222,8 +239,13 @@ export default class ListGirls extends React.Component {
               style={[styles.centering, {height: 80}]}
               size="large"
             />)}</View>
+          <ActionButton buttonColor="rgba(231,76,60,1)" offsetY={200} position='right'>
+            <ActionButton.Item buttonColor='#1abc9c' title="Back" onPress={() => { goBack(null) }}>
+              <Icon name="md-arrow-round-back" style={styles.actionButtonIcon} />
+            </ActionButton.Item>
+          </ActionButton>
         </ScrollView>
-      </ParallaxView>
+        </View>
       );
     } else {
       return (<View>
@@ -249,6 +271,11 @@ export default class ListGirls extends React.Component {
               size="large"
             />)}</View>
         </ScrollView>
+        <ActionButton buttonColor="rgba(231,76,60,1)" offsetY={200} position='right'>
+          <ActionButton.Item buttonColor='#1abc9c' title="Back" onPress={() => { goBack(null) }}>
+            <Icon name="md-arrow-round-back" style={styles.actionButtonIcon} />
+          </ActionButton.Item>
+        </ActionButton>
       </View>)
     }
   };
