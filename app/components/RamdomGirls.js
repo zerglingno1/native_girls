@@ -19,6 +19,11 @@ import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 export default class RamdomGirls extends React.Component {
+
+  static navigationOptions = {
+     title: 'Main', 
+     header: { visible: false } 
+  };
   constructor(props) {
     super(props)
     this.state = {
@@ -42,7 +47,7 @@ export default class RamdomGirls extends React.Component {
     this.loadGirls(url, page);
   }
 
-  loadGirls(url, page) {
+  loadGirls(url, page, isKeep = true) {
     const { dataSource, loading } = this.state;
 
     if(!loading) {
@@ -60,7 +65,7 @@ export default class RamdomGirls extends React.Component {
           let { backgrounds } = this.state;
           let newGirls2 = crawler.crawlGirls2(response.data);
           newGirls2 = newGirls.concat(newGirls2);
-          if (backgrounds) {
+          if (isKeep && backgrounds) {
             backgrounds = backgrounds.concat(newGirls2);
           } else {
             backgrounds = newGirls2;
@@ -91,15 +96,12 @@ export default class RamdomGirls extends React.Component {
 
   renderLoading() {
     return (<ActivityIndicator
+      color='#E9525C'
       style={[styles.centering, {height: 80}]}
       size="large"
     />);
   }
 
-  handleYup (card) {
-  }
-  handleNope (card) {
-  }
   cardRemoved (index) {
     const { backgrounds, host } = this.state;
 
@@ -115,9 +117,15 @@ export default class RamdomGirls extends React.Component {
     }
   }
 
+  loadMore() {
+    const { host } = this.state;
+    let next = Math.floor(Math.random() * 200) + 1;
+    let url = (next == 1) ? host : `${host}page/${next}`;
+    this.loadGirls(url, next, false);
+  }
+
   renderBackground() {
     const { source, backgrounds, pagerDataSource, background } = this.state;
-    let { goBack } = this.props.navigation;
 
     return (<View style={{flex: 1, width: undefined, height: undefined, backgroundColor: 'black'}}>
       {background && (<Image source={{uri: background}} resizeMode='cover' style={{opacity: 0.4 ,flex: 1, width: ui.size.width, height: ui.size.height, position: 'absolute', left: 0, top: 0}} />)}
@@ -137,11 +145,14 @@ export default class RamdomGirls extends React.Component {
             </View>)}
             showYup={false}
             showNope={false}
-            handleYup={this.handleYup}
-            handleNope={this.handleNope}
             cardRemoved={(index) => this.cardRemoved(index) }
         />)}
       </View>
+      <ActionButton buttonColor="rgba(233, 82, 92, 1)" position='left' outRangeScale={1.5} >
+          <ActionButton.Item buttonColor='#1abc9c' title="More" onPress={() => { this.loadMore() }}>
+            <Icon name="md-refresh" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+          </ActionButton.Item>
+        </ActionButton>
     </View>)
   };
 

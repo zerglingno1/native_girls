@@ -17,12 +17,14 @@ import ui from '../utils/ui';
 import ParallaxView from 'react-native-parallax-view';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Native from '../utils/native';
+import Storage from '../utils/storage';
 
 export default class PickGirlsPage extends React.Component {
 
   static navigationOptions = {
-    title: 'Main', 
-    header: { visible: false } 
+    title: '', 
+    header: { visible: true } 
   };
 
   constructor(props) {
@@ -40,7 +42,9 @@ export default class PickGirlsPage extends React.Component {
       loadMore: false,
       loadMoreBack: false,
       background: null,
-      width: ui.size.width
+      width: ui.size.width,
+      contextMenu: false,
+      selected: null,
     }
   }
 
@@ -70,7 +74,7 @@ export default class PickGirlsPage extends React.Component {
 
           newGirls2 = newGirls.concat(newGirls2);
           let source = dataSource.cloneWithRows(newGirls2);
-          let index = parseInt(newGirls2.length / 2);
+          let index = Math.floor(Math.random() * newGirls2.length) + 1;
           this.setState({
             girls: newGirls2,
             source,
@@ -96,8 +100,120 @@ export default class PickGirlsPage extends React.Component {
     }
   }
 
+  async addBookmark() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Storage.savebookmark({url: selected, title: ''});
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  async saveImage() {
+    const { selected } = this.state;
+    if (selected && selected != '') {
+      await Native.saveFile(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+  
+  async copyImage() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Native.copyFile(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  async copyUrl() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Native.copyUrl(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  async shareImage() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Native.shareImage(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  async shareUrl() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Native.shareUrl(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  renderContextMenu() {
+    const { contextMenu } = this.state;
+
+    return contextMenu && (<ActionButton 
+      buttonColor="rgba(233, 82, 92, 1)" 
+      buttonText=''
+      position='left' 
+      onReset={() => {
+        this.setState({
+          selected: null,
+          contextMenu: false
+        });
+      }}
+      offsetY={-100}
+      verticalOrientation='down'
+      active={true}>
+         <ActionButton.Item buttonColor='#E9525C' title="bookmark" onPress={() => { this.addBookmark() }}>
+          <Icon name="md-bookmark" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#9b59b6' title="Save" onPress={() => { this.saveImage() }}>
+          <Icon name="md-download" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#9b59b6' title="Copy Link" onPress={() => { this.copyUrl() }}>
+          <Icon name="ios-link" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#3498db' title="Copy Local" onPress={() => { this.copyImage() }}>
+          <Icon name="md-copy" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#3498db' title="Share Image" onPress={() => { this.shareImage() }}>
+          <Icon name="md-images" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#1abc9c' title="Share Url" onPress={() => { this.shareUrl() }}>
+          <Icon name="md-share" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#1abc9c' title="Back" onPress={() => { goBack(null) }}>
+          <Icon name="md-arrow-round-back" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+      </ActionButton>)
+  }
+
   renderLoading() {
     return (<ActivityIndicator
+      color='#E9525C'
       style={[styles.centering, {height: 80}]}
       size="large"
     />);
@@ -106,16 +222,16 @@ export default class PickGirlsPage extends React.Component {
   _onChooseGirl(girl, girls) {
     const { navigation } = this.props;
     let images = [];
+    let list = [];
 
     images.push({url: girl.url});
+    list.push(girl);
     girls.map((item) => {
       images.push({url: item.url});
+      list.push(item);
     });
 
-    this.setState({
-      images
-    });
-    navigation.navigate('Girl', { images: images });
+    navigation.navigate('Girl', { images: images, girls: list });
   }
 
   renderPost(girl) {
@@ -123,7 +239,14 @@ export default class PickGirlsPage extends React.Component {
     
     let numCol = (width < 800) ? 2 : parseInt(width / 400);
     return (
-      <TouchableOpacity style={[styles.item, {width: ui.size.width / numCol - numCol * 4}]}  onPress={() => this._onChooseGirl(girl, girls)}>
+      <TouchableOpacity
+        onLongPress ={async (e)=>{
+          this.setState({
+            selected: girl.url,
+            contextMenu: true
+          });
+        }} 
+        style={[styles.item, {width: ui.size.width / numCol - numCol * 4}]}  onPress={() => this._onChooseGirl(girl, girls)}>
           <FitImage 
             resizeMode='stretch'
             source={{uri: girl.url}}
@@ -133,16 +256,6 @@ export default class PickGirlsPage extends React.Component {
           </Text>
       </TouchableOpacity>
       );
-  }
-
-  renderLoadingMore() {
-    return (<View style={styles.popupCenter}>
-      <ActivityIndicator
-        style={[styles.centering, {height: 80}]}
-        size="large"
-      />
-      <Text style={styles.textLoadMore}>Load more</Text>
-    </View>);
   }
 
   _onScroll(e) {
@@ -208,6 +321,13 @@ export default class PickGirlsPage extends React.Component {
       }
   }
 
+  loadMore() {
+    const { host } = this.state;
+    let next = Math.floor(Math.random() * 200) + 1;
+    let url = (next == 1) ? host : `${host}page/${next}`;
+    this.loadGirls(url, next, false);
+  }
+
   renderBackground() {
     const { source, loadMore, background, loadMoreBack, width } = this.state;
     let { goBack } = this.props.navigation;
@@ -217,10 +337,11 @@ export default class PickGirlsPage extends React.Component {
     if (background && background != '') {
       return (
         <View>
-        <Image source={{uri: background}} resizeMode='cover' style={{opacity: 0.4 ,flex: 1, width: ui.size.width, height: ui.size.height, position: 'absolute', left: 0, top: 0}} />
+        <Image source={{uri: background}} resizeMode='cover' style={styles.backgroundImg} />
         <ScrollView onScroll={(e) => this._onScroll(e)}>
           {loadMoreBack && (<View style={[styles.endList, {height: 80}]}>
             <ActivityIndicator
+              color='#E9525C'
               style={[styles.centering, {height: 80}]}
               size="large"
             /></View>)}
@@ -236,15 +357,12 @@ export default class PickGirlsPage extends React.Component {
             />)}
           <View style={[styles.endList, {height: 80}]}>{loadMore && (
             <ActivityIndicator
+              color='#E9525C'
               style={[styles.centering, {height: 80}]}
               size="large"
             />)}</View>
-          <ActionButton buttonColor="rgba(231,76,60,1)" offsetY={200} position='right'>
-            <ActionButton.Item buttonColor='#1abc9c' title="Back" onPress={() => { goBack(null) }}>
-              <Icon name="md-arrow-round-back" style={styles.actionButtonIcon} />
-            </ActionButton.Item>
-          </ActionButton>
         </ScrollView>
+        {this.renderContextMenu()}
         </View>
       );
     } else {
@@ -252,6 +370,7 @@ export default class PickGirlsPage extends React.Component {
         <ScrollView ref='listPage' onScroll={(e) => this._onScroll(e)}>
          {loadMoreBack && (<View style={[styles.endList, {height: 80}]}>
             <ActivityIndicator
+              color='#E9525C'
               style={[styles.centering, {height: 80}]}
               size="large"
             /></View>)}
@@ -267,15 +386,12 @@ export default class PickGirlsPage extends React.Component {
             />)}
           <View style={[styles.endList, {height: 80}]}>{loadMore && (
             <ActivityIndicator
+              color='#E9525C'
               style={[styles.centering, {height: 80}]}
               size="large"
             />)}</View>
         </ScrollView>
-        <ActionButton buttonColor="rgba(231,76,60,1)" offsetY={200} position='right'>
-          <ActionButton.Item buttonColor='#1abc9c' title="Back" onPress={() => { goBack(null) }}>
-            <Icon name="md-arrow-round-back" style={styles.actionButtonIcon} />
-          </ActionButton.Item>
-        </ActionButton>
+        {this.renderContextMenu()}
       </View>)
     }
   };
@@ -292,11 +408,6 @@ export default class PickGirlsPage extends React.Component {
 }
 
 var styles = StyleSheet.create({
-    backgroundImage: {
-        flex: 1,
-        width: null,
-        height: null,
-    },
     itemsBox: {
         marginLeft: 5,
         marginRight: 5,
@@ -315,27 +426,19 @@ var styles = StyleSheet.create({
         padding: 6,
         margin: 3
     },
-    popupCenter: {
-      position: 'absolute',
-      width: ui.size.width,
-      height: 100,
-      top: ui.size.width / 2 - 50,
-      left: 0,
-      //backgroundColor: '#CCCCCC',
-      //opacity: 0.4,
-      //backgroundColor: 'red',
-      alignItems: 'center',
-      justifyContent: 'center',
+    backgroundImg: {
+      opacity: 0.4 , 
+      flex: 1, 
+      width: ui.size.width, 
+      height: ui.size.height, 
+      position: 'absolute', 
+      left: 0, 
+      top: 0 
     },
     centering: {
       alignItems: 'center',
       justifyContent: 'center',
       padding: 8,
-      opacity: 1
-    },
-    textLoadMore: {
-      flex: 1,
-      color: 'black',
       opacity: 1
     },
     endList: {

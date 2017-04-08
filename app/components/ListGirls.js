@@ -15,6 +15,10 @@ import crawler from '../utils/crawler';
 import FitImage from 'react-native-fit-image';
 import ui from '../utils/ui';
 import ParallaxView from 'react-native-parallax-view';
+import Native from '../utils/native';
+import ActionButton from 'react-native-action-button';
+import VectorIcon from 'react-native-vector-icons/Ionicons';
+import Storage from '../utils/storage';
 
 export default class ListGirls extends React.Component {
   constructor(props) {
@@ -32,7 +36,9 @@ export default class ListGirls extends React.Component {
       loadMore: false,
       loadMoreBack: false,
       background: null,
-      width: ui.size.width
+      width: ui.size.width,
+      contextMenu: false,
+      selected: null,
     }
   }
 
@@ -62,7 +68,7 @@ export default class ListGirls extends React.Component {
 
           newGirls2 = newGirls.concat(newGirls2);
           let source = dataSource.cloneWithRows(newGirls2);
-          let index = parseInt(newGirls2.length / 2);
+          let index = Math.floor(Math.random() * newGirls2.length) + 1;
           this.setState({
             girls: newGirls2,
             source,
@@ -89,10 +95,11 @@ export default class ListGirls extends React.Component {
   }
 
   renderLoading() {
-    return (<ActivityIndicator
+    return (<View style={[styles.centering, {flex: 1, width: undefined, height: undefined}]}><ActivityIndicator
+      color='#E9525C'
       style={[styles.centering, {height: 80}]}
       size="large"
-    />);
+    /></View>);
   }
 
   renderPost(girl) {
@@ -101,7 +108,17 @@ export default class ListGirls extends React.Component {
     
     let numCol = (width < 800) ? 2 : parseInt(width / 400);
     return (
-      <TouchableOpacity style={[styles.item, {width: ui.size.width / numCol - numCol * 4}]}  onPress={() => _onChooseGirl(girl, girls)}>
+      <TouchableOpacity 
+        style={[styles.item, {width: ui.size.width / numCol - numCol * 4}]}  
+        onPress={() => _onChooseGirl(girl, girls)}
+        delayLongPress={1000}
+        onLongPress ={async (e)=>{
+          this.setState({
+            selected: girl.url,
+            contextMenu: true
+          });
+        }}
+        >
           <FitImage 
             resizeMode='stretch'
             source={{uri: girl.url}}
@@ -111,16 +128,6 @@ export default class ListGirls extends React.Component {
           </Text>
       </TouchableOpacity>
       );
-  }
-
-  renderLoadingMore() {
-    return (<View style={styles.popupCenter}>
-      <ActivityIndicator
-        style={[styles.centering, {height: 80}]}
-        size="large"
-      />
-      <Text style={styles.textLoadMore}>Load more</Text>
-    </View>);
   }
 
   _onScroll(e) {
@@ -192,44 +199,160 @@ export default class ListGirls extends React.Component {
     }
   }
 
+  async addBookmark() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Storage.savebookmark({url: selected, title: ''});
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  async saveImage() {
+    const { selected } = this.state;
+    if (selected && selected != '') {
+      await Native.saveFile(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+  
+  async copyImage() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Native.copyFile(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  async copyUrl() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Native.copyUrl(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  async shareImage() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Native.shareImage(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  async shareUrl() {
+    const { selected } = this.state;
+
+    if (selected && selected != '') {
+      await Native.shareUrl(selected);
+    }
+    this.setState({
+      selected: null,
+      contextMenu: false
+    });
+  }
+
+  renderContextMenu() {
+    const { contextMenu } = this.state;
+
+    return contextMenu && (<ActionButton 
+      buttonColor="rgba(233, 82, 92, 1)" 
+      buttonText=''
+      position='left' 
+      onReset={() => {
+        this.setState({
+          selected: null,
+          contextMenu: false
+        });
+      }}
+      offsetY={-100}
+      verticalOrientation='down'
+      active={true}>
+         <ActionButton.Item buttonColor='#E9525C' title="bookmark" onPress={() => { this.addBookmark() }}>
+          <VectorIcon name="md-bookmark" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#9b59b6' title="Save" onPress={() => { this.saveImage() }}>
+          <VectorIcon name="md-download" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#9b59b6' title="Copy Link" onPress={() => { this.copyUrl() }}>
+          <VectorIcon name="ios-link" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#3498db' title="Copy Local" onPress={() => { this.copyImage() }}>
+          <VectorIcon name="md-copy" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#3498db' title="Share Image" onPress={() => { this.shareImage() }}>
+          <VectorIcon name="md-images" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#1abc9c' title="Share Url" onPress={() => { this.shareUrl() }}>
+          <VectorIcon name="md-share" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item buttonColor='#1abc9c' title="Back" onPress={() => { goBack(null) }}>
+          <VectorIcon name="md-arrow-round-back" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+      </ActionButton>)
+  }
+
   renderBackground() {
     const { source, loadMore, background, loadMoreBack, width } = this.state;
 
     let numCol = (width < 800) ? 2 : parseInt(width / 400);
 
     if (background && background != '') {
-      return (
-        <ParallaxView backgroundSource={{uri: background}}
-                  style={styles.backgroundImage} onScroll={(e) => this._onScroll(e)} ref='listPage'>
-        <ScrollView>
-          {loadMoreBack && (<View style={[styles.endList, {height: 80}]}>
-            <ActivityIndicator
-              style={[styles.centering, {height: 80}]}
-              size="large"
-            /></View>)}
-          {source && (
-            <ListView
-              ref='listView'
-              dataSource={source}
-              renderRow={(row) => this.renderPost(row)}
-              contentContainerStyle={styles.items}
-              style={styles.itemsBox}
-              pagingEnabled={false}
-              pageSize={9999999}
-            />)}
-          <View style={[styles.endList, {height: 80}]}>{loadMore && (
-            <ActivityIndicator
-              style={[styles.centering, {height: 80}]}
-              size="large"
-            />)}</View>
-        </ScrollView>
-      </ParallaxView>
-      );
+      return (<View style={{flex: 1, width: undefined, height: undefined}}>
+          <ParallaxView backgroundSource={{uri: background}}
+                    style={styles.backgroundImage} onScroll={(e) => this._onScroll(e)} ref='listPage'>
+          <ScrollView>
+            {loadMoreBack && (<View style={[styles.endList, {height: 80}]}>
+              <ActivityIndicator
+                color='#E9525C'
+                style={[styles.centering, {height: 80}]}
+                size="large"
+              /></View>)}
+            {source && (
+              <ListView
+                ref='listView'
+                dataSource={source}
+                renderRow={(row) => this.renderPost(row)}
+                contentContainerStyle={styles.items}
+                style={styles.itemsBox}
+                pagingEnabled={false}
+                pageSize={9999999}
+              />)}
+            <View style={[styles.endList, {height: 80}]}>{loadMore && (
+              <ActivityIndicator
+                color='#E9525C'
+                style={[styles.centering, {height: 80}]}
+                size="large"
+              />)}</View>
+          </ScrollView>
+        </ParallaxView>
+        {this.renderContextMenu()}
+      </View>);
     } else {
       return (<View>
+        {this.renderContextMenu()}
         <ScrollView ref='listPage' onScroll={(e) => this._onScroll(e)}>
          {loadMoreBack && (<View style={[styles.endList, {height: 80}]}>
             <ActivityIndicator
+              color='#E9525C'
               style={[styles.centering, {height: 80}]}
               size="large"
             /></View>)}
@@ -245,6 +368,7 @@ export default class ListGirls extends React.Component {
             />)}
           <View style={[styles.endList, {height: 80}]}>{loadMore && (
             <ActivityIndicator
+              color='#E9525C'
               style={[styles.centering, {height: 80}]}
               size="large"
             />)}</View>
@@ -287,18 +411,6 @@ var styles = StyleSheet.create({
         borderColor: '#555',
         padding: 6,
         margin: 3
-    },
-    popupCenter: {
-      position: 'absolute',
-      width: ui.size.width,
-      height: 100,
-      top: ui.size.width / 2 - 50,
-      left: 0,
-      //backgroundColor: '#CCCCCC',
-      //opacity: 0.4,
-      //backgroundColor: 'red',
-      alignItems: 'center',
-      justifyContent: 'center',
     },
     centering: {
       alignItems: 'center',

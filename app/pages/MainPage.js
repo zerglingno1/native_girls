@@ -18,7 +18,6 @@ export default class MainPage extends React.Component {
     super(props)
     this.state = {
       selectedTab: 'profile',
-      image: []
     }
   }
 
@@ -29,8 +28,11 @@ export default class MainPage extends React.Component {
       case 'pick':
         navigation.navigate('Pick');
       break;
+      case 'book':
+        navigation.navigate('Book');
+      break;
       case 'feed':
-        navigation.navigate('Random');
+        navigation.navigate('Sweet');
       break;
       default: 
         this.setState({ selectedTab });
@@ -41,16 +43,16 @@ export default class MainPage extends React.Component {
   _onChooseGirl(girl, girls) {
     const { navigation } = this.props;
     let images = [];
+    let list = [];
 
+    list.push(girl);
     images.push({url: girl.url});
     girls.map((item) => {
       images.push({url: item.url});
+      list.push(item);
     });
 
-    this.setState({
-      images
-    });
-    navigation.navigate('Girl', { images: images });
+    navigation.navigate('Girl', { images: images, girls: list });
     //this.changeTab('feed');
   }
 
@@ -60,32 +62,34 @@ export default class MainPage extends React.Component {
     return (
     <Tabs>
       <Tab
+        selected={selectedTab === 'book'}
+        renderIcon={() => <Icon containerStyle={{justifyContent: 'center', alignItems: 'center', marginTop: 12}} color={'#5e6977'} name='book' size={25} />}
+        onPress={() => this.changeTab('book')}>
+          <View/>
+      </Tab>
+      <Tab
         titleStyle={{fontWeight: 'bold', fontSize: 10}}
-        selectedTitleStyle={{marginTop: -1, marginBottom: 6}}
+        selectedTitleStyle={{marginTop: -2, color: '#E9525C'}}
         selected={selectedTab === 'feed'}
-        title={selectedTab === 'feed' ? 'GIRL' : null}
+        title={selectedTab === 'feed' ? 'SWEET' : null}
         renderIcon={() => <Icon containerStyle={{justifyContent: 'center', alignItems: 'center', marginTop: 12}} color={'#5e6977'} name='favorite' size={25} />}
-        renderSelectedIcon={() => <Icon color={'#6296f9'} name='favorite' size={20} />}
+        renderSelectedIcon={() => <Icon color={'#E9525C'} name='favorite' size={25} />}
         onPress={() => this.changeTab('feed')}>
           <View/>
       </Tab>
       <Tab
         titleStyle={{fontWeight: 'bold', fontSize: 10}}
-        selectedTitleStyle={{marginTop: -1, marginBottom: 6}}
+        selectedTitleStyle={{marginTop: -2, color: '#E9525C'}}
         selected={selectedTab === 'profile'}
-        title={selectedTab === 'profile' ? 'Hot' : null}
+        title={selectedTab === 'profile' ? 'HOT' : null}
         renderIcon={() => <Icon containerStyle={{justifyContent: 'center', alignItems: 'center', marginTop: 12}} color={'#5e6977'} name='whatshot' size={25} />}
-        renderSelectedIcon={() => <Icon color={'#6296f9'} name='whatshot' size={20} />}
+        renderSelectedIcon={() => <Icon color={'#E9525C'} name='whatshot' size={25} />}
         onPress={() => this.changeTab('profile')}>
           {selectedTab == 'profile' && (<ListGirls _onChooseGirl={(girl, girls) => this._onChooseGirl(girl, girls)} selectedTab={selectedTab} />)}
       </Tab>
       <Tab
-        titleStyle={{fontWeight: 'bold', fontSize: 10}}
-        selectedTitleStyle={{marginTop: -1, marginBottom: 6}}
         selected={selectedTab === 'pick'}
-        title={selectedTab === 'pick' ? 'PICK ME' : null}
         renderIcon={() => <Icon containerStyle={{justifyContent: 'center', alignItems: 'center', marginTop: 12}} color={'#5e6977'} name='burst-mode' size={25} />}
-        renderSelectedIcon={() => <Icon color={'#6296f9'} name='burst-mode' size={20} />}
         onPress={() => this.changeTab('pick')}>
           <View/>
       </Tab>

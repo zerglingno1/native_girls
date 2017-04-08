@@ -17,6 +17,8 @@ import ui from '../utils/ui';
 import SwipeCards from 'react-native-swipe-cards';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Storage from '../utils/storage';
+import Native from '../utils/native';
 
 export default class RamdomGirlsPage extends React.Component {
 
@@ -36,7 +38,8 @@ export default class RamdomGirlsPage extends React.Component {
       background: null,
       backgrounds: null,
       width: ui.size.width,
-      outOfCards: false
+      outOfCards: false,
+      selected: 0
     }
   }
 
@@ -95,16 +98,11 @@ export default class RamdomGirlsPage extends React.Component {
   }
 
   renderLoading() {
-    return (<ActivityIndicator
+    return (<View style={[styles.centering, {flex: 1, width: undefined, height: undefined}]}><ActivityIndicator
+      color='#E9525C'
       style={[styles.centering, {height: 80}]}
       size="large"
-    />);
-  }
-
-  handleYup (card) {
-  }
-
-  handleNope (card) {
+    /></View>);
   }
 
   cardRemoved (index) {
@@ -116,10 +114,13 @@ export default class RamdomGirlsPage extends React.Component {
       this.loadGirls(url, next);
     } else {
       this.setState({
-        backgrounds: backgrounds,
-        background: backgrounds[index].url
-    });
+          backgrounds: backgrounds,
+          background: backgrounds[index].url
+      });
     }
+    this.setState({
+      selected: (Number(index) + 1)
+    })
   }
 
   loadMore() {
@@ -127,6 +128,21 @@ export default class RamdomGirlsPage extends React.Component {
     let next = Math.floor(Math.random() * 200) + 1;
     let url = (next == 1) ? host : `${host}page/${next}`;
     this.loadGirls(url, next, false);
+  }
+
+  async addBookmark() {
+    const { selected, backgrounds } = this.state;
+
+    if (selected != null && backgrounds[selected]) {
+      await Storage.savebookmark(backgrounds[selected]);
+    }
+  }
+
+  async saveImage() {
+    const { selected, backgrounds } = this.state;
+    if (selected != null && backgrounds[selected]) {
+      await Native.saveFile(backgrounds[selected].url);
+    }
   }
 
   renderBackground() {
@@ -151,17 +167,21 @@ export default class RamdomGirlsPage extends React.Component {
             </View>)}
             showYup={false}
             showNope={false}
-            handleYup={this.handleYup}
-            handleNope={this.handleNope}
             cardRemoved={(index) => this.cardRemoved(index) }
         />)}
       </View>
-      <ActionButton buttonColor="rgba(231,76,60,1)">
+      <ActionButton buttonColor="rgba(233, 82, 92, 1)" position='left' outRangeScale={1.5} >
           <ActionButton.Item buttonColor='#1abc9c' title="More" onPress={() => { this.loadMore() }}>
-            <Icon name="md-refresh" style={styles.actionButtonIcon} />
+            <Icon name="md-refresh" color='#ffffff' style={styles.actionButtonIcon} />
+          </ActionButton.Item>
+          <ActionButton.Item buttonColor='#9b59b6' title="Save" onPress={() => { this.saveImage() }}>
+            <Icon name="md-download" size={20} color='#ffffff' style={styles.actionButtonIcon} />
+          </ActionButton.Item>
+          <ActionButton.Item buttonColor='#E9525C' title="bookmark" onPress={() => { this.addBookmark() }}>
+            <Icon name="md-bookmark" size={20} color='#ffffff' style={styles.actionButtonIcon} />
           </ActionButton.Item>
           <ActionButton.Item buttonColor='#1abc9c' title="Back" onPress={() => { goBack(null) }}>
-            <Icon name="md-arrow-round-back" style={styles.actionButtonIcon} />
+            <Icon name="md-arrow-round-back" color='#ffffff' style={styles.actionButtonIcon} />
           </ActionButton.Item>
         </ActionButton>
     </View>)
