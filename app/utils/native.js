@@ -1,9 +1,21 @@
-import { NativeModules, Clipboard } from 'react-native';
-
+import { NativeModules, Clipboard, Platform, Share} from 'react-native';
+import RNFS from 'react-native-fs';
 export default {
   saveFile: async (url) => {
     try {
-      let result = await NativeModules.ImageBaseModule.saveImageFile(url);
+      let result;
+      if (Platform.OS === 'android') {
+        console.warn(RNFS.ExternalStorageDirectoryPath);
+        RNFS.downloadFile({
+          fromUrl: url,
+          toFile: `${RNFS.ExternalStorageDirectoryPath}/react-native.png`
+        });
+      } else if (Platform.OS === 'ios') {
+
+      } else {
+        result = await NativeModules.ImageBaseModule.saveImageFile(url);
+      }
+      return result;
     } catch (e) {
       console.warn(e);
     }
@@ -36,7 +48,19 @@ export default {
   },
   shareUrl: async (url) => {
     try {
-      let result = await NativeModules.ImageBaseModule.shareUrl(url);
+      let result;
+      if (Platform.OS === 'android') {
+          Share.share({
+            message: url,
+            url: url,
+          })
+
+            .catch((error) => this.setState({result: 'error: ' + error.message}));
+      } else if (Platform.OS === 'ios') {
+
+      } else {
+        result = await NativeModules.ImageBaseModule.shareUrl(url);
+      }
       return result;
     } catch (e) {
       console.warn(e);

@@ -1,9 +1,10 @@
 import React from 'react';
 import {
   Text,
-  ActivityIndicator, 
+  ActivityIndicator,
   StyleSheet,
-  View
+  View,
+  Platform
 } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import ActionButton from 'react-native-action-button';
@@ -13,8 +14,8 @@ import Native from '../utils/native';
 
 export default class ViewGirlPage extends React.Component {
   static navigationOptions = {
-     title: 'Main', 
-     header: { visible: false } 
+     title: 'Main',
+     header: false
   };
   constructor(props) {
     super(props)
@@ -26,7 +27,6 @@ export default class ViewGirlPage extends React.Component {
   async addBookmark() {
     const { index } = this.state;
     const { params } = this.props.navigation.state;
-
     let girl = params.girls[index];
     await Storage.savebookmark(girl);
   }
@@ -38,7 +38,7 @@ export default class ViewGirlPage extends React.Component {
     let girl = params.girls[index];
     await Native.saveFile(girl.url);
   }
-  
+
   async copyImage() {
     const { index } = this.state;
     const { params } = this.props.navigation.state;
@@ -83,9 +83,9 @@ export default class ViewGirlPage extends React.Component {
 
     return (
     <View style={styles.container}>
-      {( params && params.images && params.images.length > 0 ) && 
-      (<ImageViewer 
-        style={styles.container} 
+      {( params && params.images && params.images.length > 0 ) &&
+      (<ImageViewer
+        style={styles.container}
         imageUrls={params.images}
         onChange={(index) => this.onchange(index)}
         renderArrowLeft={() => (
@@ -109,17 +109,20 @@ export default class ViewGirlPage extends React.Component {
         <ActionButton.Item buttonColor='#9b59b6' title="Copy Link" onPress={() => { this.copyUrl() }}>
           <Icon name="ios-link" size={20} color='#ffffff' style={styles.actionButtonIcon} />
         </ActionButton.Item>
-        <ActionButton.Item buttonColor='#3498db' title="Copy Local" onPress={() => { this.copyImage() }}>
+         {(Platform.OS !== 'android') &&
+         (
+         <ActionButton.Item buttonColor='#3498db' title="Copy Local" onPress={() => { this.copyImage() }}>
           <Icon name="md-copy" size={20} color='#ffffff' style={styles.actionButtonIcon} />
-        </ActionButton.Item>
-        <ActionButton.Item buttonColor='#3498db' title="Share Image" onPress={() => { this.shareImage() }}>
-          <Icon name="md-images" size={20} color='#ffffff' style={styles.actionButtonIcon} />
-        </ActionButton.Item>
+         </ActionButton.Item>
+         )}
+         {(Platform.OS !== 'android') &&
+         (
+           <ActionButton.Item buttonColor='#3498db' title="Share Image" onPress={() => {this.shareImage()}}>
+             <Icon name="md-images" size={20} color='#ffffff' style={styles.actionButtonIcon}/>
+           </ActionButton.Item>
+         )}
         <ActionButton.Item buttonColor='#1abc9c' title="Share Url" onPress={() => { this.shareUrl() }}>
           <Icon name="md-share" size={20} color='#ffffff' style={styles.actionButtonIcon} />
-        </ActionButton.Item>
-        <ActionButton.Item buttonColor='#1abc9c' title="Back" onPress={() => { goBack(null) }}>
-          <Icon name="md-arrow-round-back" size={20} color='#ffffff' style={styles.actionButtonIcon} />
         </ActionButton.Item>
       </ActionButton>
     </View>);

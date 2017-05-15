@@ -23,8 +23,8 @@ import Native from '../utils/native';
 export default class RamdomGirlsPage extends React.Component {
 
   static navigationOptions = {
-     title: 'Main', 
-     header: { visible: false } 
+     title: 'Main',
+    header: false
   };
   constructor(props) {
     super(props)
