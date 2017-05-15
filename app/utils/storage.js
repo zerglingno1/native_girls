@@ -10,9 +10,9 @@ export default {
   },
   savebookmark: async (bookmark) => {
     let bookmarks = await AsyncStorage.getItem(TABLE.bookmarks);
-
     if (bookmarks) {
       bookmarks = JSON.parse(bookmarks);
+
       let book = bookmarks.filter((item) => {
         return item.url == bookmark.url;
       });
@@ -23,6 +23,16 @@ export default {
     }
     bookmarks.push(bookmark);
     await AsyncStorage.setItem(TABLE.bookmarks, JSON.stringify(bookmarks));
+    return true;
+  },
+  removebookmark: async (bookmark) => {
+    let bookmarks = await AsyncStorage.getItem(TABLE.bookmarks);
+    if (bookmarks) {
+      bookmarks = JSON.parse(bookmarks);
+      let index = bookmarks.map((item) => item.url).indexOf(bookmark.url);
+      bookmarks.splice(index,1);
+      await AsyncStorage.setItem(TABLE.bookmarks, JSON.stringify(bookmarks));
+    }
     return true;
   }
 }

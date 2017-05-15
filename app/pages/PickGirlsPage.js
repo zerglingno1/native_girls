@@ -8,6 +8,7 @@ import {
   ActivityIndicator, 
   TouchableOpacity, 
   Image
+
 } from 'react-native';
 import { Card } from 'react-native-elements';
 import axios from 'axios';
@@ -23,8 +24,8 @@ import Storage from '../utils/storage';
 export default class PickGirlsPage extends React.Component {
 
   static navigationOptions = {
-    title: '', 
-    header: { visible: true } 
+    title: '',
+    header: false
   };
 
   constructor(props) {
@@ -175,7 +176,7 @@ export default class PickGirlsPage extends React.Component {
     const { contextMenu } = this.state;
 
     return contextMenu && (<ActionButton 
-      buttonColor="rgba(233, 82, 92, 1)" 
+      buttonColor="rgba(233, 82, 92, 1)"
       buttonText=''
       position='left' 
       onReset={() => {

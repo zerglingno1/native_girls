@@ -12,7 +12,7 @@ import RamdomGirls from '../components/RamdomGirls'
 export default class MainPage extends React.Component {
   static navigationOptions = {
      title: 'Main', 
-     header: { visible: false } 
+     header: false
     };
   constructor(props) {
     super(props)
@@ -23,7 +23,6 @@ export default class MainPage extends React.Component {
 
   changeTab(selectedTab) {
     const { navigation } = this.props;
-
     switch (selectedTab) {
       case 'pick':
         navigation.navigate('Pick');

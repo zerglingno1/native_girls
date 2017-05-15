@@ -7,15 +7,20 @@ import {
   Text, 
   ScrollView, 
   ListView,
-  Image, 
+  Image,
+  Platform,
   TouchableOpacity } from 'react-native';
 import Storage from '../utils/storage';
 import ui from '../utils/ui';
 import Native from '../utils/native';
 
-export default class BookmarksPage extends Component{
-  constructor() {
-    super();
+export default class BookmarksPage extends React.Component{
+  static navigationOptions = {
+    title: 'Main',
+    header: false
+  };
+  constructor(props) {
+    super(props);
     const dataSource = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
       dataSource,
@@ -34,7 +39,7 @@ export default class BookmarksPage extends Component{
 
     let books = await Storage.bookmarks();
     let source = (books && books.length > 0) ? dataSource.cloneWithRows(books) : null;
-    let index = (books && books.length > 1) ? Math.floor(Math.random() * books.length) + 1 : (books.length == 1) ? 0 : null;
+    let index = (books && books.length > 1) ? Math.floor(Math.random() * books.length) : (books.length == 1) ? 0 : null;
     this.setState({
       images: books,
       background: (index != null) ? books[index].url : null,
@@ -57,6 +62,20 @@ export default class BookmarksPage extends Component{
     navigation.navigate('Girl', { images: images, girls: list });
   }
 
+  async removeBookmark(girl) {
+
+    await Storage.removebookmark(girl);
+    const { dataSource } = this.state;
+    let books = await Storage.bookmarks();
+    let source = (books && books.length > 0) ? dataSource.cloneWithRows(books) : null;
+    let index = (books && books.length > 1) ? Math.floor(Math.random() * books.length) : (books.length == 1) ? 0 : null;
+    this.setState({
+      images: books,
+      background: (index != null) ? books[index].url : null,
+      source
+    });
+  }
+
   render() {
     const { source, dataSource, background } = this.state;
       
@@ -74,7 +93,7 @@ export default class BookmarksPage extends Component{
 
             return (<TouchableOpacity 
               onLongPress ={async (e)=>{
-                await Native.saveFile(rowData.url);
+                await this.removeBookmark(rowData);
               }} 
               underlayColor={'#bbb'} onPress={() => this._onChooseGirl(rowData, images)}>
                 <View style={styles.recordItem}>
